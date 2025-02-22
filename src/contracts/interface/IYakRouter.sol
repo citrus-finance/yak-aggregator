@@ -85,6 +85,7 @@ interface IYakRouter {
     ) external view returns (Query memory);
 
     function findBestPathWithGas(
+        address _wnative,
         uint256 _amountIn,
         address _tokenIn,
         address _tokenOut,
@@ -108,12 +109,14 @@ interface IYakRouter {
     ) external;
 
     function swapNoSplitFromAVAX(
+        address _wnative,
         Trade calldata _trade,
         address _to,
         uint256 _fee
     ) external payable;
 
     function swapNoSplitToAVAX(
+        address _wnative,
         Trade calldata _trade,
         address _to,
         uint256 _fee
@@ -130,6 +133,7 @@ interface IYakRouter {
     ) external;
 
     function swapNoSplitToAVAXWithPermit(
+        address _wnative,
         Trade calldata _trade,
         address _to,
         uint256 _fee,

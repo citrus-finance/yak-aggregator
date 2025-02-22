@@ -34,7 +34,6 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
     using SafeERC20 for IERC20;
     using OfferUtils for Offer;
 
-    address public immutable WNATIVE;
     address public constant NATIVE = address(0);
     string public constant NAME = "YakRouter";
     uint256 public constant FEE_DENOMINATOR = 1e4;
@@ -47,14 +46,11 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
         address _admin,
         address[] memory _adapters,
         address[] memory _trustedTokens,
-        address _feeClaimer,
-        address _wrapped_native
+        address _feeClaimer
     ) Maintainable(_admin) {
-        setAllowanceForWrapping(_wrapped_native);
         setTrustedTokens(_trustedTokens);
         setFeeClaimer(_feeClaimer);
         setAdapters(_adapters);
-        WNATIVE = _wrapped_native;
     }
 
     // -- SETTERS --
@@ -103,12 +99,12 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
         return (_amountIn * (FEE_DENOMINATOR - _fee)) / FEE_DENOMINATOR;
     }
 
-    function _wrap(uint256 _amount) internal {
-        IWETH(WNATIVE).deposit{ value: _amount }();
+    function _wrap(address _wnative, uint256 _amount) internal {
+        IWETH(_wnative).deposit{ value: _amount }();
     }
 
-    function _unwrap(uint256 _amount) internal {
-        IWETH(WNATIVE).withdraw(_amount);
+    function _unwrap(address _wnative, uint256 _amount) internal {
+        IWETH(_wnative).withdraw(_amount);
     }
 
     /**
@@ -199,6 +195,7 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
      * Takes gas-cost into account
      */
     function findBestPathWithGas(
+        address _wnative,
         uint256 _amountIn,
         address _tokenIn,
         address _tokenOut,
@@ -207,7 +204,7 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
     ) override external view returns (FormattedOffer memory) {
         require(_maxSteps > 0 && _maxSteps < 5, "YakRouter: Invalid max-steps");
         Offer memory queries = OfferUtils.newOffer(_amountIn, _tokenIn);
-        uint256 gasPriceInExitTkn = _gasPrice > 0 ? getGasPriceInExitTkn(_gasPrice, _tokenOut) : 0;
+        uint256 gasPriceInExitTkn = _gasPrice > 0 ? getGasPriceInExitTkn(_wnative, _gasPrice, _tokenOut) : 0;
         queries = _findBestPath(_amountIn, _tokenIn, _tokenOut, _maxSteps, queries, gasPriceInExitTkn);
         if (queries.adapters.length == 0) {
             queries.amounts = "";
@@ -217,9 +214,9 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
     }
 
     // Find the market price between gas-asset(native) and token-out and express gas price in token-out
-    function getGasPriceInExitTkn(uint256 _gasPrice, address _tokenOut) internal view returns (uint256 price) {
+    function getGasPriceInExitTkn(address _wnative, uint256 _gasPrice, address _tokenOut) internal view returns (uint256 price) {
         // Avoid low-liquidity price appreciation (https://github.com/yieldyak/yak-aggregator/issues/20)
-        FormattedOffer memory gasQuery = findBestPath(1e18, WNATIVE, _tokenOut, 2);
+        FormattedOffer memory gasQuery = findBestPath(1e18, _wnative, _tokenOut, 2);
         if (gasQuery.path.length != 0) {
             // Leave result in nWei to preserve precision for assets with low decimal places
             price = (gasQuery.amounts[gasQuery.amounts.length - 1] * _gasPrice) / 1e9;
@@ -362,23 +359,25 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
     }
 
     function swapNoSplitFromAVAX(
+        address _wnative,
         Trade calldata _trade,
         address _to,
         uint256 _fee
     ) override external payable {
-        require(_trade.path[0] == WNATIVE, "YakRouter: Path needs to begin with WAVAX");
-        _wrap(_trade.amountIn);
+        require(_trade.path[0] == _wnative, "YakRouter: Path needs to begin with WAVAX");
+        _wrap(_wnative, _trade.amountIn);
         _swapNoSplit(_trade, address(this), _to, _fee);
     }
 
     function swapNoSplitToAVAX(
+        address _wnative,
         Trade calldata _trade,
         address _to,
         uint256 _fee
     ) override public {
-        require(_trade.path[_trade.path.length - 1] == WNATIVE, "YakRouter: Path needs to end with WAVAX");
+        require(_trade.path[_trade.path.length - 1] == _wnative, "YakRouter: Path needs to end with WAVAX");
         uint256 returnAmount = _swapNoSplit(_trade, msg.sender, address(this), _fee);
-        _unwrap(returnAmount);
+        _unwrap(_wnative, returnAmount);
         _returnTokensTo(NATIVE, returnAmount, _to);
     }
 
@@ -402,6 +401,7 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
      * Swap token to AVAX without the need to approve the first token
      */
     function swapNoSplitToAVAXWithPermit(
+        address _wnative,
         Trade calldata _trade,
         address _to,
         uint256 _fee,
@@ -411,6 +411,6 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
         bytes32 _s
     ) override external {
         IERC20(_trade.path[0]).permit(msg.sender, address(this), _trade.amountIn, _deadline, _v, _r, _s);
-        swapNoSplitToAVAX(_trade, _to, _fee);
+        swapNoSplitToAVAX(_wnative, _trade, _to, _fee);
     }
 }
