@@ -35,10 +35,11 @@ contract SaddleMetaAdapter is YakAdapter {
     address public pool;
 
     constructor(
+        address _admin,
         string memory _name,
         address _pool,
         uint256 _swapGasEstimate
-    ) YakAdapter(_name, _swapGasEstimate) {
+    ) YakAdapter(_admin, _name, _swapGasEstimate) {
         pool = _pool;
         metaPool = ISaddleMeta(pool).metaSwapStorage(); // Pool that holds USDCe, USDTe, DAIe
         _setPoolTokens();

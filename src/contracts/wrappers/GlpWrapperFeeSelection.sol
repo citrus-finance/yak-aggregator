@@ -33,6 +33,7 @@ contract GlpWrapperFeeSelection is YakWrapper {
     mapping(address => bool) public isWhitelisted;
 
     constructor(
+        address _admin,
         string memory _name,
         uint256 _gasEstimate,
         address _gmxRewardRouter,
@@ -41,7 +42,7 @@ contract GlpWrapperFeeSelection is YakWrapper {
         uint256 _inOutCount,
         address _glp,
         address _sGlp
-    ) YakWrapper(_name, _gasEstimate) {
+    ) YakWrapper(_admin, _name, _gasEstimate) {
         address gmxGLPManager = IGmxRewardRouter(_gmxRewardRouter).glpManager();
         address gmxVault = IGlpManager(gmxGLPManager).vault();
         USDG = IGmxVault(gmxVault).usdg();

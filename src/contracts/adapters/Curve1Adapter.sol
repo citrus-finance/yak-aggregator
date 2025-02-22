@@ -32,8 +32,8 @@ contract Curve1Adapter is YakAdapter {
     mapping(address => bool) public isPoolToken;
     address public pool;
 
-    constructor(string memory _name, address _pool, address[] memory _tokenBlacklist, uint256 _swapGasEstimate)
-        YakAdapter(_name, _swapGasEstimate)
+    constructor(address _admin, string memory _name, address _pool, address[] memory _tokenBlacklist, uint256 _swapGasEstimate)
+        YakAdapter(_admin, _name, _swapGasEstimate)
     {
         pool = _pool;
         _setPoolTokens(_tokenBlacklist);

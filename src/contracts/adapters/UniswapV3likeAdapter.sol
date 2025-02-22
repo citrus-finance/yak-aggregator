@@ -67,11 +67,12 @@ abstract contract UniswapV3likeAdapter is YakAdapter {
     address public quoter;
 
     constructor(
+        address _admin,
         string memory _name,
         uint256 _swapGasEstimate,
         address _quoter,
         uint256 _quoterGasLimit
-    ) YakAdapter(_name, _swapGasEstimate) {
+    ) YakAdapter(_admin, _name, _swapGasEstimate) {
         setQuoterGasLimit(_quoterGasLimit);
         setQuoter(_quoter);
     }

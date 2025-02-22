@@ -23,13 +23,14 @@ import "./UniswapV3AdapterBase.sol";
 contract UniswapV3Adapter is UniswapV3AdapterBase {
 
     constructor(
+        address _admin,
         string memory _name,
         uint256 _swapGasEstimate,
         uint256 _quoterGasLimit,
         address _quoter,
         address _factory,
         uint24[] memory _defaultFees
-    ) UniswapV3AdapterBase(_name, _swapGasEstimate, _quoterGasLimit, _quoter, _factory, _defaultFees) {
+    ) UniswapV3AdapterBase(_admin, _name, _swapGasEstimate, _quoterGasLimit, _quoter, _factory, _defaultFees) {
     }
 
     function uniswapV3SwapCallback(

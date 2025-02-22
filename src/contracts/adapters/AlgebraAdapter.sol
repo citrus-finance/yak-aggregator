@@ -30,12 +30,13 @@ contract AlgebraAdapter is UniswapV3likeAdapter {
     address immutable FACTORY;
 
     constructor(
+        address _admin,
         string memory _name,
         uint256 _swapGasEstimate,
         uint256 _quoterGasLimit,
         address _quoter,
         address _factory
-    ) UniswapV3likeAdapter(_name, _swapGasEstimate, _quoter, _quoterGasLimit) {
+    ) UniswapV3likeAdapter(_admin, _name, _swapGasEstimate, _quoter, _quoterGasLimit) {
         FACTORY = _factory;
     }
 

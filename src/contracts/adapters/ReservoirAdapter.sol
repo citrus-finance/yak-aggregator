@@ -15,11 +15,12 @@ contract ReservoirAdapter is YakAdapter {
     IQuoter public immutable quoter;
 
     constructor(
+        address _admin,
         string memory _name,
         address _factory,
         address _quoter,
         uint256 _swapGasEstimate // we use the worse off i.e. the stable pair gas estimate
-    ) YakAdapter(_name, _swapGasEstimate) {
+    ) YakAdapter(_admin, _name, _swapGasEstimate) {
         factory = IGenericFactory(_factory);
         quoter = IQuoter(_quoter);
     }

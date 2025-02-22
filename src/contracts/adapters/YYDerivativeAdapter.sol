@@ -31,11 +31,12 @@ contract YYDerivativeAdapter is YakAdapter {
     address public immutable underlying;
 
     constructor(
+        address _admin,
         string memory _name,
         uint256 _swapGasEstimate,
         address _derivative,
         address _underlying
-    ) YakAdapter(_name, _swapGasEstimate) {
+    ) YakAdapter(_admin, _name, _swapGasEstimate) {
         derivative = _derivative;
         underlying = _underlying;
     }

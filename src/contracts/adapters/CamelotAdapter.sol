@@ -44,10 +44,11 @@ contract CamelotAdapter is YakAdapter {
     address referrer;
 
     constructor(
+        address _admin,
         string memory _name,
         address _factory,
         uint256 _swapGasEstimate
-    ) YakAdapter(_name, _swapGasEstimate) {
+    ) YakAdapter(_admin, _name, _swapGasEstimate) {
         FACTORY = _factory;
     }
 

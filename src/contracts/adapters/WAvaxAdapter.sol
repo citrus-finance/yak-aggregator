@@ -24,7 +24,7 @@ import "../YakAdapter.sol";
 contract WAvaxAdapter is YakAdapter {
     address internal constant WAVAX = 0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7;
 
-    constructor(uint256 _swapGasEstimate) YakAdapter("WAvaxAdapter", _swapGasEstimate) {
+    constructor(address _admin, uint256 _swapGasEstimate) YakAdapter(_admin, "WAvaxAdapter", _swapGasEstimate) {
         setSwapGasEstimate(_swapGasEstimate);
     }
 

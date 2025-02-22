@@ -36,11 +36,12 @@ contract GeodeWPAdapter is YakAdapter {
     address public pooledTknInterface;
 
     constructor(
+        address _admin,
         string memory _name,
         address _portal,
         uint256 _pooledTknId,
         uint256 _swapGasEstimate
-    ) YakAdapter(_name, _swapGasEstimate) {
+    ) YakAdapter(_admin, _name, _swapGasEstimate) {
         pooledTknInterface = IGeodePortal(_portal).planetCurrentInterface(_pooledTknId);
         address _pool = IGeodePortal(_portal).planetWithdrawalPool(_pooledTknId);
         address _gavax = IGeodePortal(_portal).gAVAX();

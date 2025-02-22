@@ -31,10 +31,11 @@ contract ArableSFAdapter is YakAdapter {
     mapping(address => uint256) public tokenDecimals;
 
     constructor(
+        address _admin,
         string memory _name,
         address _vault,
         uint256 _swapGasEstimate
-    ) YakAdapter(_name, _swapGasEstimate) {
+    ) YakAdapter(_admin, _name, _swapGasEstimate) {
         vault = _vault;
         setPoolTokens();
     }

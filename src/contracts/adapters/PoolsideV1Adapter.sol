@@ -201,11 +201,12 @@ contract PoolsideV1Adapter is YakAdapter {
     address public immutable buttonTokenFactory;
 
     constructor(
+        address _admin,
         string memory _name,
         address _buttonswapFactory,
         address _buttonTokenFactory,
         uint256 _swapGasEstimate
-    ) YakAdapter(_name, _swapGasEstimate) {
+    ) YakAdapter(_admin, _name, _swapGasEstimate) {
         buttonswapFactory = _buttonswapFactory;
         buttonTokenFactory = _buttonTokenFactory;
     }

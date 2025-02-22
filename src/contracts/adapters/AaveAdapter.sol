@@ -28,7 +28,7 @@ contract AaveAdapter is YakAdapter {
     address public immutable pool;
     address public immutable underlying;
 
-    constructor(string memory _name, address _aToken, uint256 _swapGasEstimate) YakAdapter(_name, _swapGasEstimate) {
+    constructor(address _admin, string memory _name, address _aToken, uint256 _swapGasEstimate) YakAdapter(_admin, _name, _swapGasEstimate) {
         aToken = _aToken;
         address aavePool = IAaveAToken(_aToken).POOL();
         pool = aavePool;

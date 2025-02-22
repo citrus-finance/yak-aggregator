@@ -32,10 +32,11 @@ contract WoofiAdapter is YakAdapter {
     address public rebateCollector;
 
     constructor(
+        address _admin,
         string memory _name,
         uint256 _swapGasEstimate,
         address _pool
-    ) YakAdapter(_name, _swapGasEstimate) {
+    ) YakAdapter(_admin, _name, _swapGasEstimate) {
         address _quoteToken = IWooPP(_pool).quoteToken();
         IERC20(_quoteToken).approve(_pool, UINT_MAX);
         quoteToken = _quoteToken;

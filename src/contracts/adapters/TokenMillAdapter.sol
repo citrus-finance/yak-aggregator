@@ -30,8 +30,8 @@ contract TokenMillAdapter is YakAdapter {
     address public immutable factory;
     address public immutable referrer;
 
-    constructor(string memory _name, address _factory, address _referrer, uint256 _swapGasEstimate)
-        YakAdapter(_name, _swapGasEstimate)
+    constructor(address _admin, string memory _name, address _factory, address _referrer, uint256 _swapGasEstimate)
+        YakAdapter(_admin, _name, _swapGasEstimate)
     {
         factory = _factory;
         referrer = _referrer;

@@ -28,10 +28,11 @@ contract BridgeMigrationAdapter is YakAdapter {
     mapping(address => bool) public isNewBridgeToken;
 
     constructor(
+        address _admin,
         address[] memory _newTokens,
         address[] memory _oldTokens,
         uint256 _swapGasEstimate
-    ) YakAdapter("BridgeMigrationAdapter", _swapGasEstimate) {
+    ) YakAdapter(_admin, "BridgeMigrationAdapter", _swapGasEstimate) {
         setNewBridgeTokens(_newTokens, _oldTokens);
     }
 

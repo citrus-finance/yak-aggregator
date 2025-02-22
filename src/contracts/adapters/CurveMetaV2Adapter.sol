@@ -52,10 +52,11 @@ contract CurveMetaV2Adapter is YakAdapter {
     mapping(address => bool) public isPoolToken;
 
     constructor(
+        address _admin,
         string memory _name,
         address _pool,
         uint256 _swapGasEstimate
-    ) YakAdapter(_name, _swapGasEstimate) {
+    ) YakAdapter(_admin, _name, _swapGasEstimate) {
         address metaCoin = getMetaCoin(_pool);
         approveAndAddTokenToAdapter(_pool, metaCoin, 0);
         addUnderlyingTkns(_pool);

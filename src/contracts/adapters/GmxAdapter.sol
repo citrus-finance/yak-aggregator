@@ -37,10 +37,11 @@ contract GmxAdapter is YakAdapter {
     mapping(address => uint256) tokenDecimals;
 
     constructor(
+        address _admin,
         string memory _name,
         address _vault,
         uint256 _swapGasEstimate
-    ) YakAdapter(_name, _swapGasEstimate) {
+    ) YakAdapter(_admin, _name, _swapGasEstimate) {
         _setVaultTkns(_vault);
         USE_VAULT_UTILS = _vaultHasUtils(_vault);
         USDG = IGmxVault(_vault).usdg();

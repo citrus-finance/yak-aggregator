@@ -40,11 +40,12 @@ contract LB2Adapter is YakAdapter {
     uint256 public quoteGasLimit = 600_000;
 
     constructor(
+        address _admin,
         string memory _name,
         uint256 _swapGasEstimate,
         uint256 _quoteGasLimit,
         address _factory
-    ) YakAdapter(_name, _swapGasEstimate) {
+    ) YakAdapter(_admin, _name, _swapGasEstimate) {
         setQuoteGasLimit(_quoteGasLimit);
         FACTORY = _factory;
     }

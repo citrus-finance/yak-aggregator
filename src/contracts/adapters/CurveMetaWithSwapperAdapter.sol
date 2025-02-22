@@ -47,12 +47,13 @@ contract CurveMetaWithSwapperAdapter is YakAdapter {
     mapping(address => bool) public isPoolToken;
 
     constructor(
+        address _admin,
         string memory _name,
         uint256 _swapGasEstimate,
         address _metaPool,
         address _basePool,
         address _swapper
-    ) YakAdapter(_name, _swapGasEstimate) {
+    ) YakAdapter(_admin, _name, _swapGasEstimate) {
         metaTkn = setMetaTkn(_metaPool, _swapper);
         metaPool = _metaPool;
         basePool = _basePool;

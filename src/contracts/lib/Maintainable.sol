@@ -20,11 +20,10 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 abstract contract Maintainable is Context, AccessControl {
     bytes32 public constant MAINTAINER_ROLE = keccak256("MAINTAINER_ROLE");
 
-    constructor() {
-        address msgSender = _msgSender();
+    constructor(address _admin) {
         // members of the DEFAULT_ADMIN_ROLE alone may revoke and grant role membership
-        _setupRole(DEFAULT_ADMIN_ROLE, msgSender);
-        _setupRole(MAINTAINER_ROLE, msgSender);
+        _setupRole(DEFAULT_ADMIN_ROLE, _admin);
+        _setupRole(MAINTAINER_ROLE, _admin);
     }
 
     function addMaintainer(address addedMaintainer) public virtual {

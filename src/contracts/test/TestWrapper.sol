@@ -24,10 +24,11 @@ contract TestWrapper is YakWrapper {
     address[] internal whitelistedTokens;
 
     constructor(
+        address _admin,
         string memory _name, 
         uint256 _gasEstimate, 
         address _someExternalContract
-    ) YakWrapper(_name, _gasEstimate) {
+    ) YakWrapper(_admin, _name, _gasEstimate) {
         whitelistedTokens = ISomeExternalContract(_someExternalContract).getWhitelistedTokens();
         wrappedToken = ISomeExternalContract(_someExternalContract).getWrappedToken();
         someExternalContract = _someExternalContract;

@@ -25,9 +25,10 @@ contract WNativeAdapter is YakAdapter {
     address internal immutable WNATIVE;
 
     constructor(
+        address _admin,
         address _wNative,
         uint256 _swapGasEstimate
-    ) YakAdapter("WAvaxAdapter", _swapGasEstimate) {
+    ) YakAdapter(_admin, "WAvaxAdapter", _swapGasEstimate) {
         WNATIVE = _wNative;
         setSwapGasEstimate(_swapGasEstimate);
     }

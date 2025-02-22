@@ -33,11 +33,12 @@ contract BalancerV2Adapter is YakAdapter {
     mapping(address => mapping(address => address[])) internal tokensToPools;
 
     constructor(
+        address _admin,
         string memory _name,
         address _vault,
         address[] memory _pools,
         uint256 _swapGasEstimate
-    ) YakAdapter(_name, _swapGasEstimate) {
+    ) YakAdapter(_admin, _name, _swapGasEstimate) {
         vault = _vault;
         addPools(_pools);
     }

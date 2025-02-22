@@ -28,7 +28,7 @@ contract MiniYakAdapter is YakAdapter {
     address public constant YAK = 0x59414b3089ce2AF0010e7523Dea7E2b35d776ec7;
     address public constant mYAK = 0xdDAaAD7366B455AfF8E7c82940C43CEB5829B604;
 
-    constructor(uint256 _swapGasEstimate) YakAdapter("MiniYakAdapter", _swapGasEstimate) {
+    constructor(address _admin, uint256 _swapGasEstimate) YakAdapter(_admin, "MiniYakAdapter", _swapGasEstimate) {
         setAllowances();
     }
 

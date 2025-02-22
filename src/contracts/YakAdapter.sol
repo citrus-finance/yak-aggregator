@@ -33,7 +33,7 @@ abstract contract YakAdapter is Maintainable {
     uint256 public swapGasEstimate;
     string public name;
 
-    constructor(string memory _name, uint256 _gasEstimate) {
+    constructor(address _admin, string memory _name, uint256 _gasEstimate) Maintainable(_admin) {
         setName(_name);
         setSwapGasEstimate(_gasEstimate);
     }

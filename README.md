@@ -7,6 +7,13 @@ YakSwap is a set of smart contracts for optimal path finding between two assets 
 
 Search is performed by calling on-chain query-methods and can be called by anyone. However, user should avoid calling query-methods in a mutative call due to a very large gas-cost associated with a call. 
 
+## Citrus fork
+
+This repository is forked from https://github.com/yieldyak/yak-aggregator
+
+We made the following changes:
+- admin to be added in constructor
+
 ## Usage
 
 

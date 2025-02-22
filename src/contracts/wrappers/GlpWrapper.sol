@@ -27,8 +27,8 @@ contract GlpWrapper is YakWrapper {
     mapping(address => bool) internal isWhitelisted;
     address[] internal whitelistedTokens;
 
-    constructor(string memory _name, uint256 _gasEstimate, address _gmxRewardRouter, address _glp, address _sGlp)
-        YakWrapper(_name, _gasEstimate)
+    constructor(address _admin, string memory _name, uint256 _gasEstimate, address _gmxRewardRouter, address _glp, address _sGlp)
+        YakWrapper(_admin, _name, _gasEstimate)
     {
         address gmxGLPManager = IGmxRewardRouter(_gmxRewardRouter).glpManager();
         address gmxVault = IGlpManager(gmxGLPManager).vault();

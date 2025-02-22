@@ -29,7 +29,7 @@ contract YakWrapRouterAlt is Maintainable {
 
     IYakRouter public router;
 
-    constructor(address _router) {
+    constructor(address _admin, address _router) Maintainable(_admin) {
         setRouter(_router);
     }
 

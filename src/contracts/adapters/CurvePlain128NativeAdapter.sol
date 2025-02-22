@@ -35,11 +35,12 @@ contract CurvePlain128NativeAdapter is YakAdapter {
     mapping(address => bool) public isPoolToken;
 
     constructor(
+        address _admin,
         string memory _name,
         uint256 _swapGasEstimate,
         address _pool,
         address _wNative
-    ) YakAdapter(_name, _swapGasEstimate) {
+    ) YakAdapter(_admin, _name, _swapGasEstimate) {
         IERC20(_wNative).safeApprove(_wNative, UINT_MAX);
         _setPoolTokens(_pool, _wNative);
         WNATIVE = _wNative;

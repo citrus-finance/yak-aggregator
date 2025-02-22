@@ -38,13 +38,14 @@ contract RamsesV2Adapter is UniswapV3likeAdapter {
     uint24[] public feeAmounts;
 
     constructor(
+        address _admin,
         string memory _name,
         uint256 _swapGasEstimate,
         uint256 _quoterGasLimit,
         address _quoter,
         address _factory,
         uint24[] memory _defaultFees
-    ) UniswapV3likeAdapter(_name, _swapGasEstimate, _quoter, _quoterGasLimit) {
+    ) UniswapV3likeAdapter(_admin, _name, _swapGasEstimate, _quoter, _quoterGasLimit) {
         FACTORY = _factory;
         for (uint i = 0; i < _defaultFees.length; i++) {
             addFeeAmount(_defaultFees[i]);

@@ -44,11 +44,12 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
     address[] public ADAPTERS;
 
     constructor(
+        address _admin,
         address[] memory _adapters,
         address[] memory _trustedTokens,
         address _feeClaimer,
         address _wrapped_native
-    ) {
+    ) Maintainable(_admin) {
         setAllowanceForWrapping(_wrapped_native);
         setTrustedTokens(_trustedTokens);
         setFeeClaimer(_feeClaimer);

@@ -50,10 +50,11 @@ contract CurveMetaV3Adapter is YakAdapter {
     mapping(address => mapping(address => address)) public poolForTokens;
 
     constructor(
+        address _admin,
         string memory _name,
         address[] memory _pools,
         uint256 _swapGasEstimate
-    ) YakAdapter(_name, _swapGasEstimate) {
+    ) YakAdapter(_admin, _name, _swapGasEstimate) {
         setPools(_pools);
     }
 

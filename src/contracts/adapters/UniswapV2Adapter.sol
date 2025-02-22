@@ -32,11 +32,12 @@ contract UniswapV2Adapter is YakAdapter {
     address public immutable factory;
 
     constructor(
+        address _admin,
         string memory _name,
         address _factory,
         uint256 _fee,
         uint256 _swapGasEstimate
-    ) YakAdapter(_name, _swapGasEstimate) {
+    ) YakAdapter(_admin, _name, _swapGasEstimate) {
         feeCompliment = FEE_DENOMINATOR - _fee;
         factory = _factory;
     }

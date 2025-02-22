@@ -34,7 +34,7 @@ contract GGAvaxAdapter is YakAdapter {
     address public constant ggAVAX = 0xA25EaF2906FA1a3a13EdAc9B9657108Af7B703e3;
     address public constant WAVAX = 0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7;
 
-    constructor(uint256 _swapGasEstimate) YakAdapter("GGAvaxAdapter", _swapGasEstimate) {
+    constructor(address _admin, uint256 _swapGasEstimate) YakAdapter(_admin, "GGAvaxAdapter", _swapGasEstimate) {
         IERC20(WAVAX).approve(ggAVAX, type(uint256).max);
     }
 

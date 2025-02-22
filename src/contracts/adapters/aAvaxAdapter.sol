@@ -36,7 +36,7 @@ contract SAvaxAdapter is YakAdapter {
     address public constant SAVAX = 0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE;
     address public constant WAVAX = 0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7;
 
-    constructor(uint256 _swapGasEstimate) YakAdapter("SAvaxAdapter", _swapGasEstimate) {
+    constructor(address _admin, uint256 _swapGasEstimate) YakAdapter(_admin, "SAvaxAdapter", _swapGasEstimate) {
         _setAllowances();
     }
 

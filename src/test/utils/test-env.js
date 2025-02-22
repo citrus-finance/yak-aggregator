@@ -32,7 +32,7 @@ class TestEnv {
 
     async setAdapterEnv(contractName, args, deployer) {
         deployer = deployer || this.deployer
-        const adapter = await deployContract(contractName, { args, deployer })
+        const adapter = await deployContract(contractName, { args: [this.deployer.address, ...args], deployer })
         return new AdapterTestEnv(this, adapter, deployer)
     }
 

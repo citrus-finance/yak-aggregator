@@ -29,10 +29,11 @@ contract DodoV2Adapter is YakAdapter {
     mapping(address => mapping(address => address)) public tknsToPool; // base > quote > pool
 
     constructor(
+        address _admin,
         string memory _name,
         address[] memory _pools,
         uint256 _gasEstimate
-    ) YakAdapter(_name, _gasEstimate) {
+    ) YakAdapter(_admin, _name, _gasEstimate) {
         _setPools(_pools, true);
     }
 

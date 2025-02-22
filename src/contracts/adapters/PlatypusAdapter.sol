@@ -41,10 +41,11 @@ contract PlatypusAdapter is YakAdapter {
     mapping(address => mapping(address => address)) private tknToTknToPool;
 
     constructor(
+        address _admin,
         string memory _name,
         uint256 _swapGasEstimate,
         address[] memory _initPools
-    ) YakAdapter(_name, _swapGasEstimate) {
+    ) YakAdapter(_admin, _name, _swapGasEstimate) {
         addPools(_initPools);
     }
 

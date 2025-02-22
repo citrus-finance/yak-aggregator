@@ -41,10 +41,11 @@ contract LBAdapter is YakAdapter {
     uint256 public quoteGasLimit = 600_000;
 
     constructor(
+        address _admin,
         string memory _name,
         uint256 _swapGasEstimate,
         address _router
-    ) YakAdapter(_name, _swapGasEstimate) {
+    ) YakAdapter(_admin, _name, _swapGasEstimate) {
         FACTORY = ILBRouter(_router).factory();
         ROUTER = _router;
     }
