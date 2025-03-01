@@ -39,16 +39,13 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
     uint256 public constant FEE_DENOMINATOR = 1e4;
     uint256 public MIN_FEE = 0;
     address public FEE_CLAIMER;
-    address[] public TRUSTED_TOKENS;
     address[] public ADAPTERS;
 
     constructor(
         address _admin,
         address[] memory _adapters,
-        address[] memory _trustedTokens,
         address _feeClaimer
     ) Maintainable(_admin) {
-        setTrustedTokens(_trustedTokens);
         setFeeClaimer(_feeClaimer);
         setAdapters(_adapters);
     }
@@ -57,11 +54,6 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
 
     function setAllowanceForWrapping(address _wnative) public onlyMaintainer {
         IERC20(_wnative).safeApprove(_wnative, type(uint256).max);
-    }
-
-    function setTrustedTokens(address[] memory _trustedTokens) override public onlyMaintainer {
-        emit UpdatedTrustedTokens(_trustedTokens);
-        TRUSTED_TOKENS = _trustedTokens;
     }
 
     function setAdapters(address[] memory _adapters) override public onlyMaintainer {
@@ -80,10 +72,6 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
     }
 
     //  -- GENERAL --
-
-    function trustedTokensCount() override external view returns (uint256) {
-        return TRUSTED_TOKENS.length;
-    }
 
     function adaptersCount() override external view returns (uint256) {
         return ADAPTERS.length;
@@ -195,6 +183,7 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
      * Takes gas-cost into account
      */
     function findBestPathWithGas(
+        address[] calldata _mainTokens,
         address _wnative,
         uint256 _amountIn,
         address _tokenIn,
@@ -204,8 +193,9 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
     ) override external view returns (FormattedOffer memory) {
         require(_maxSteps > 0 && _maxSteps < 5, "YakRouter: Invalid max-steps");
         Offer memory queries = OfferUtils.newOffer(_amountIn, _tokenIn);
-        uint256 gasPriceInExitTkn = _gasPrice > 0 ? getGasPriceInExitTkn(_wnative, _gasPrice, _tokenOut) : 0;
-        queries = _findBestPath(_amountIn, _tokenIn, _tokenOut, _maxSteps, queries, gasPriceInExitTkn);
+        uint256 gasPriceInExitTkn = _gasPrice > 0 ? getGasPriceInExitTkn(_mainTokens, _wnative, _gasPrice, _tokenOut) : 0;
+        FindBestPathSharedState memory sharedState = FindBestPathSharedState(_tokenOut, _maxSteps, gasPriceInExitTkn, _mainTokens);
+        queries = _findBestPath(_amountIn, _tokenIn, queries, sharedState);
         if (queries.adapters.length == 0) {
             queries.amounts = "";
             queries.path = "";
@@ -214,9 +204,9 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
     }
 
     // Find the market price between gas-asset(native) and token-out and express gas price in token-out
-    function getGasPriceInExitTkn(address _wnative, uint256 _gasPrice, address _tokenOut) internal view returns (uint256 price) {
+    function getGasPriceInExitTkn(address[] calldata _mainTokens, address _wnative, uint256 _gasPrice, address _tokenOut) internal view returns (uint256 price) {
         // Avoid low-liquidity price appreciation (https://github.com/yieldyak/yak-aggregator/issues/20)
-        FormattedOffer memory gasQuery = findBestPath(1e18, _wnative, _tokenOut, 2);
+        FormattedOffer memory gasQuery = findBestPath(_mainTokens, 1e18, _wnative, _tokenOut, 2);
         if (gasQuery.path.length != 0) {
             // Leave result in nWei to preserve precision for assets with low decimal places
             price = (gasQuery.amounts[gasQuery.amounts.length - 1] * _gasPrice) / 1e9;
@@ -227,6 +217,7 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
      * Return path with best returns between two tokens
      */
     function findBestPath(
+        address[] calldata _mainTokens,
         uint256 _amountIn,
         address _tokenIn,
         address _tokenOut,
@@ -234,7 +225,8 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
     ) override public view returns (FormattedOffer memory) {
         require(_maxSteps > 0 && _maxSteps < 5, "YakRouter: Invalid max-steps");
         Offer memory queries = OfferUtils.newOffer(_amountIn, _tokenIn);
-        queries = _findBestPath(_amountIn, _tokenIn, _tokenOut, _maxSteps, queries, 0);
+        FindBestPathSharedState memory sharedState = FindBestPathSharedState(_tokenOut, _maxSteps, 0, _mainTokens);
+        queries = _findBestPath(_amountIn, _tokenIn, queries, sharedState);
         // If no paths are found return empty struct
         if (queries.adapters.length == 0) {
             queries.amounts = "";
@@ -243,21 +235,26 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
         return queries.format();
     }
 
+    struct FindBestPathSharedState {
+        address tokenOut;
+        uint256 maxSteps;
+        uint256 tknOutPriceNwei;
+        address[] mainTokens;
+    }
+
     function _findBestPath(
         uint256 _amountIn,
         address _tokenIn,
-        address _tokenOut,
-        uint256 _maxSteps,
         Offer memory _queries,
-        uint256 _tknOutPriceNwei
+        FindBestPathSharedState memory _sharedState
     ) internal view returns (Offer memory) {
         Offer memory bestOption = _queries.clone();
         uint256 bestAmountOut;
         uint256 gasEstimate;
-        bool withGas = _tknOutPriceNwei != 0;
+        bool withGas = _sharedState.tknOutPriceNwei != 0;
 
         // First check if there is a path directly from tokenIn to tokenOut
-        Query memory queryDirect = queryNoSplit(_amountIn, _tokenIn, _tokenOut);
+        Query memory queryDirect = queryNoSplit(_amountIn, _tokenIn, _sharedState.tokenOut);
 
         if (queryDirect.amountOut != 0) {
             if (withGas) {
@@ -267,14 +264,14 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
             bestAmountOut = queryDirect.amountOut;
         }
         // Only check the rest if they would go beyond step limit (Need at least 2 more steps)
-        if (_maxSteps > 1 && _queries.adapters.length / 32 <= _maxSteps - 2) {
+        if (_sharedState.maxSteps > 1 && _queries.adapters.length / 32 <= _sharedState.maxSteps - 2) {
             // Check for paths that pass through trusted tokens
-            for (uint256 i = 0; i < TRUSTED_TOKENS.length; i++) {
-                if (_tokenIn == TRUSTED_TOKENS[i]) {
+            for (uint256 i = 0; i < _sharedState.mainTokens.length; i++) {
+                if (_tokenIn == _sharedState.mainTokens[i]) {
                     continue;
                 }
                 // Loop through all adapters to find the best one for swapping tokenIn for one of the trusted tokens
-                Query memory bestSwap = queryNoSplit(_amountIn, _tokenIn, TRUSTED_TOKENS[i]);
+                Query memory bestSwap = queryNoSplit(_amountIn, _tokenIn, _sharedState.mainTokens[i]);
                 if (bestSwap.amountOut == 0) {
                     continue;
                 }
@@ -286,18 +283,16 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
                 newOffer.addToTail(bestSwap.amountOut, bestSwap.adapter, bestSwap.tokenOut, gasEstimate);
                 newOffer = _findBestPath(
                     bestSwap.amountOut,
-                    TRUSTED_TOKENS[i],
-                    _tokenOut,
-                    _maxSteps,
+                    _sharedState.mainTokens[i],
                     newOffer,
-                    _tknOutPriceNwei
+                    _sharedState
                 ); // Recursive step
                 address tokenOut = newOffer.getTokenOut();
                 uint256 amountOut = newOffer.getAmountOut();
                 // Check that the last token in the path is the tokenOut and update the new best option if neccesary
-                if (_tokenOut == tokenOut && amountOut > bestAmountOut) {
+                if (_sharedState.tokenOut == tokenOut && amountOut > bestAmountOut) {
                     if (newOffer.gasEstimate > bestOption.gasEstimate) {
-                        uint256 gasCostDiff = (_tknOutPriceNwei * (newOffer.gasEstimate - bestOption.gasEstimate)) /
+                        uint256 gasCostDiff = (_sharedState.tknOutPriceNwei * (newOffer.gasEstimate - bestOption.gasEstimate)) /
                             1e9;
                         uint256 priceDiff = amountOut - bestAmountOut;
                         if (gasCostDiff > priceDiff) {

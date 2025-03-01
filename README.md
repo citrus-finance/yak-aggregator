@@ -14,6 +14,7 @@ This repository is forked from https://github.com/yieldyak/yak-aggregator
 We made the following changes:
 - admin to be added in constructor
 - remove hard-coded wnative
+- remove hard-coded TRUSTED_TOKENS
 
 ## Usage
 
