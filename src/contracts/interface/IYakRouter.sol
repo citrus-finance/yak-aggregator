@@ -98,14 +98,14 @@ interface IYakRouter {
         uint256 _fee
     ) external;
 
-    function swapNoSplitFromAVAX(
+    function swapNoSplitFromNATIVE(
         address _wnative,
         Trade calldata _trade,
         address _to,
         uint256 _fee
     ) external payable;
 
-    function swapNoSplitToAVAX(
+    function swapNoSplitToNATIVE(
         address _wnative,
         Trade calldata _trade,
         address _to,
@@ -122,7 +122,7 @@ interface IYakRouter {
         bytes32 _s
     ) external;
 
-    function swapNoSplitToAVAXWithPermit(
+    function swapNoSplitToNATIVEWithPermit(
         address _wnative,
         Trade calldata _trade,
         address _to,

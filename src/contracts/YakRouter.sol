@@ -83,7 +83,7 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
 
     /**
      * @notice Return tokens to user
-     * @dev Pass address(0) for AVAX
+     * @dev Pass address(0) for NATIVE
      * @param _token address
      * @param _amount tokens to return
      * @param _to address where funds should be sent to
@@ -323,24 +323,24 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
         _swapNoSplit(_trade, msg.sender, _to, _fee);
     }
 
-    function swapNoSplitFromAVAX(
+    function swapNoSplitFromNATIVE(
         address _wnative,
         Trade calldata _trade,
         address _to,
         uint256 _fee
     ) override external payable {
-        require(_trade.path[0] == _wnative, "YakRouter: Path needs to begin with WAVAX");
+        require(_trade.path[0] == _wnative, "YakRouter: Path needs to begin with WNATIVE");
         _wrap(_wnative, _trade.amountIn);
         _swapNoSplit(_trade, address(this), _to, _fee);
     }
 
-    function swapNoSplitToAVAX(
+    function swapNoSplitToNATIVE(
         address _wnative,
         Trade calldata _trade,
         address _to,
         uint256 _fee
     ) override public {
-        require(_trade.path[_trade.path.length - 1] == _wnative, "YakRouter: Path needs to end with WAVAX");
+        require(_trade.path[_trade.path.length - 1] == _wnative, "YakRouter: Path needs to end with WNATIVE");
         uint256 returnAmount = _swapNoSplit(_trade, msg.sender, address(this), _fee);
         _unwrap(_wnative, returnAmount);
         _returnTokensTo(NATIVE, returnAmount, _to);
@@ -363,9 +363,9 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
     }
 
     /**
-     * Swap token to AVAX without the need to approve the first token
+     * Swap token to NATIVE without the need to approve the first token
      */
-    function swapNoSplitToAVAXWithPermit(
+    function swapNoSplitToNATIVEWithPermit(
         address _wnative,
         Trade calldata _trade,
         address _to,
@@ -376,6 +376,6 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
         bytes32 _s
     ) override external {
         IERC20(_trade.path[0]).permit(msg.sender, address(this), _trade.amountIn, _deadline, _v, _r, _s);
-        swapNoSplitToAVAX(_wnative, _trade, _to, _fee);
+        swapNoSplitToNATIVE(_wnative, _trade, _to, _fee);
     }
 }
