@@ -39,26 +39,18 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
     uint256 public constant FEE_DENOMINATOR = 1e4;
     uint256 public MIN_FEE = 0;
     address public FEE_CLAIMER;
-    address[] public ADAPTERS;
 
     constructor(
         address _admin,
-        address[] memory _adapters,
         address _feeClaimer
     ) Maintainable(_admin) {
         setFeeClaimer(_feeClaimer);
-        setAdapters(_adapters);
     }
 
     // -- SETTERS --
 
     function setAllowanceForWrapping(address _wnative) public onlyMaintainer {
         IERC20(_wnative).safeApprove(_wnative, type(uint256).max);
-    }
-
-    function setAdapters(address[] memory _adapters) override public onlyMaintainer {
-        emit UpdatedAdapters(_adapters);
-        ADAPTERS = _adapters;
     }
 
     function setMinFee(uint256 _fee) override external onlyMaintainer {
@@ -69,12 +61,6 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
     function setFeeClaimer(address _claimer) override public onlyMaintainer {
         emit UpdatedFeeClaimer(FEE_CLAIMER, _claimer);
         FEE_CLAIMER = _claimer;
-    }
-
-    //  -- GENERAL --
-
-    function adaptersCount() override external view returns (uint256) {
-        return ADAPTERS.length;
     }
 
     // Fallback
@@ -132,10 +118,10 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
         uint256 _amountIn,
         address _tokenIn,
         address _tokenOut,
-        uint8 _index
+        address _adapter
     ) override external view returns (uint256) {
-        IAdapter _adapter = IAdapter(ADAPTERS[_index]);
-        uint256 amountOut = _adapter.query(_amountIn, _tokenIn, _tokenOut);
+        IAdapter adapter = IAdapter(_adapter);
+        uint256 amountOut = adapter.query(_amountIn, _tokenIn, _tokenOut);
         return amountOut;
     }
 
@@ -146,30 +132,11 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
         uint256 _amountIn,
         address _tokenIn,
         address _tokenOut,
-        uint8[] calldata _options
+        address[] memory _adapters
     ) override public view returns (Query memory) {
         Query memory bestQuery;
-        for (uint8 i; i < _options.length; i++) {
-            address _adapter = ADAPTERS[_options[i]];
-            uint256 amountOut = IAdapter(_adapter).query(_amountIn, _tokenIn, _tokenOut);
-            if (i == 0 || amountOut > bestQuery.amountOut) {
-                bestQuery = Query(_adapter, _tokenIn, _tokenOut, amountOut);
-            }
-        }
-        return bestQuery;
-    }
-
-    /**
-     * Query all adapters
-     */
-    function queryNoSplit(
-        uint256 _amountIn,
-        address _tokenIn,
-        address _tokenOut
-    ) override public view returns (Query memory) {
-        Query memory bestQuery;
-        for (uint8 i; i < ADAPTERS.length; i++) {
-            address _adapter = ADAPTERS[i];
+        for (uint8 i; i < _adapters.length; i++) {
+            address _adapter = _adapters[i];
             uint256 amountOut = IAdapter(_adapter).query(_amountIn, _tokenIn, _tokenOut);
             if (i == 0 || amountOut > bestQuery.amountOut) {
                 bestQuery = Query(_adapter, _tokenIn, _tokenOut, amountOut);
@@ -183,6 +150,7 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
      * Takes gas-cost into account
      */
     function findBestPathWithGas(
+        address[] calldata _adapters,
         address[] calldata _mainTokens,
         address _wnative,
         uint256 _amountIn,
@@ -193,8 +161,8 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
     ) override external view returns (FormattedOffer memory) {
         require(_maxSteps > 0 && _maxSteps < 5, "YakRouter: Invalid max-steps");
         Offer memory queries = OfferUtils.newOffer(_amountIn, _tokenIn);
-        uint256 gasPriceInExitTkn = _gasPrice > 0 ? getGasPriceInExitTkn(_mainTokens, _wnative, _gasPrice, _tokenOut) : 0;
-        FindBestPathSharedState memory sharedState = FindBestPathSharedState(_tokenOut, _maxSteps, gasPriceInExitTkn, _mainTokens);
+        uint256 gasPriceInExitTkn = _gasPrice > 0 ? getGasPriceInExitTkn(_adapters, _mainTokens, _wnative, _gasPrice, _tokenOut) : 0;
+        FindBestPathSharedState memory sharedState = FindBestPathSharedState(_tokenOut, _maxSteps, gasPriceInExitTkn, _mainTokens, _adapters);
         queries = _findBestPath(_amountIn, _tokenIn, queries, sharedState);
         if (queries.adapters.length == 0) {
             queries.amounts = "";
@@ -204,9 +172,9 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
     }
 
     // Find the market price between gas-asset(native) and token-out and express gas price in token-out
-    function getGasPriceInExitTkn(address[] calldata _mainTokens, address _wnative, uint256 _gasPrice, address _tokenOut) internal view returns (uint256 price) {
+    function getGasPriceInExitTkn(address[] calldata _adapters, address[] calldata _mainTokens, address _wnative, uint256 _gasPrice, address _tokenOut) internal view returns (uint256 price) {
         // Avoid low-liquidity price appreciation (https://github.com/yieldyak/yak-aggregator/issues/20)
-        FormattedOffer memory gasQuery = findBestPath(_mainTokens, 1e18, _wnative, _tokenOut, 2);
+        FormattedOffer memory gasQuery = findBestPath(_adapters, _mainTokens, 1e18, _wnative, _tokenOut, 2);
         if (gasQuery.path.length != 0) {
             // Leave result in nWei to preserve precision for assets with low decimal places
             price = (gasQuery.amounts[gasQuery.amounts.length - 1] * _gasPrice) / 1e9;
@@ -217,6 +185,7 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
      * Return path with best returns between two tokens
      */
     function findBestPath(
+        address[] calldata _adapters,
         address[] calldata _mainTokens,
         uint256 _amountIn,
         address _tokenIn,
@@ -225,7 +194,7 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
     ) override public view returns (FormattedOffer memory) {
         require(_maxSteps > 0 && _maxSteps < 5, "YakRouter: Invalid max-steps");
         Offer memory queries = OfferUtils.newOffer(_amountIn, _tokenIn);
-        FindBestPathSharedState memory sharedState = FindBestPathSharedState(_tokenOut, _maxSteps, 0, _mainTokens);
+        FindBestPathSharedState memory sharedState = FindBestPathSharedState(_tokenOut, _maxSteps, 0, _mainTokens, _adapters);
         queries = _findBestPath(_amountIn, _tokenIn, queries, sharedState);
         // If no paths are found return empty struct
         if (queries.adapters.length == 0) {
@@ -240,6 +209,7 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
         uint256 maxSteps;
         uint256 tknOutPriceNwei;
         address[] mainTokens;
+        address[] adapters;
     }
 
     function _findBestPath(
@@ -254,7 +224,7 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
         bool withGas = _sharedState.tknOutPriceNwei != 0;
 
         // First check if there is a path directly from tokenIn to tokenOut
-        Query memory queryDirect = queryNoSplit(_amountIn, _tokenIn, _sharedState.tokenOut);
+        Query memory queryDirect = queryNoSplit(_amountIn, _tokenIn, _sharedState.tokenOut, _sharedState.adapters);
 
         if (queryDirect.amountOut != 0) {
             if (withGas) {
@@ -271,7 +241,7 @@ contract YakRouter is Maintainable, Recoverable, IYakRouter {
                     continue;
                 }
                 // Loop through all adapters to find the best one for swapping tokenIn for one of the trusted tokens
-                Query memory bestSwap = queryNoSplit(_amountIn, _tokenIn, _sharedState.mainTokens[i]);
+                Query memory bestSwap = queryNoSplit(_amountIn, _tokenIn, _sharedState.mainTokens[i], _sharedState.adapters);
                 if (bestSwap.amountOut == 0) {
                     continue;
                 }

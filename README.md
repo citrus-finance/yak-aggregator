@@ -15,6 +15,7 @@ We made the following changes:
 - admin to be added in constructor
 - remove hard-coded wnative
 - remove hard-coded TRUSTED_TOKENS
+- remove hard-coded ADAPTERS
 
 ## Usage
 

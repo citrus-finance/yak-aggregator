@@ -46,19 +46,13 @@ struct Trade {
 
 interface IYakRouter {
 
-    event UpdatedTrustedTokens(address[] _newTrustedTokens);
-    event UpdatedAdapters(address[] _newAdapters);
     event UpdatedMinFee(uint256 _oldMinFee, uint256 _newMinFee);
     event UpdatedFeeClaimer(address _oldFeeClaimer, address _newFeeClaimer);
     event YakSwap(address indexed _tokenIn, address indexed _tokenOut, uint256 _amountIn, uint256 _amountOut);
 
     // admin
-    function setAdapters(address[] memory _adapters) external;
     function setFeeClaimer(address _claimer) external;
     function setMinFee(uint256 _fee) external;
-
-    // misc
-    function adaptersCount() external view returns (uint256);
 
     // query
 
@@ -66,23 +60,18 @@ interface IYakRouter {
         uint256 _amountIn,
         address _tokenIn,
         address _tokenOut,
-        uint8 _index
+        address _adapter
     ) external returns (uint256);
 
     function queryNoSplit(
         uint256 _amountIn,
         address _tokenIn,
         address _tokenOut,
-        uint8[] calldata _options
-    ) external view returns (Query memory);
-
-    function queryNoSplit(
-        uint256 _amountIn,
-        address _tokenIn,
-        address _tokenOut
+        address[] memory _adapters
     ) external view returns (Query memory);
 
     function findBestPathWithGas(
+        address[] calldata _adapters,
         address[] calldata _mainTokens,
         address _wnative,
         uint256 _amountIn,
@@ -93,6 +82,7 @@ interface IYakRouter {
     ) external view returns (FormattedOffer memory);
 
     function findBestPath(
+        address[] calldata _adapters,
         address[] calldata _mainTokens,
         uint256 _amountIn,
         address _tokenIn,
