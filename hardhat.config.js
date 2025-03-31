@@ -32,7 +32,7 @@ const DOGECHAIN_PK_DEPLOYER = getEnvValSafe('DOGECHAIN_PK_DEPLOYER')
 const MANTLE_PK_DEPLOYER = getEnvValSafe('MANTLE_PK_DEPLOYER')
 const ETHERSCAN_API_KEY = getEnvValSafe('ETHERSCAN_API_KEY', false)
 
-function getEnvValSafe(key, required=true) {
+function getEnvValSafe(key, required=false) {
   const endpoint = process.env[key];
   if (!endpoint && required)
       throw(`Missing env var ${key}`);
@@ -74,52 +74,68 @@ module.exports = {
   },
   defaultNetwork: 'hardhat',
   networks: {
-    hardhat: {
-      chainId: 43114,
-      forking: {
-        url: AVALANCHE_RPC, 
-        blockNumber: 18154644
+    ...(AVALANCHE_RPC && {
+      hardhat: {
+        chainId: 43114,
+        forking: {
+          url: AVALANCHE_RPC, 
+          blockNumber: 18154644
+        },
+        accounts: {
+          accountsBalance: "10000000000000000000000000", 
+          count: 200
+        }
       },
-      accounts: {
-        accountsBalance: "10000000000000000000000000", 
-        count: 200
+    }),
+    ...(AVALANCHE_RPC && {
+      avalanche: {
+        chainId: 43114,
+        url: AVALANCHE_RPC,
+        accounts: [ AVALANCHE_PK_DEPLOYER ]
+      },
+    }),
+    ...(FUJI_RPC && {
+      fuji: {
+        chainId: 43113,
+        url: FUJI_RPC,
+        accounts: [ AVALANCHE_PK_DEPLOYER ]
+      },
+    }),
+    ...(ARBITRUM_RPC && {
+      arbitrum: {
+        chainId: 42161,
+        url: ARBITRUM_RPC,
+        accounts: [ ARBITRUM_PK_DEPLOYER ],
+      },
+    }),
+    ...(OPTIMISM_RPC && {
+      optimism: {
+        chainId: 10,
+        url: OPTIMISM_RPC,
+        accounts: [ OPTIMISM_PK_DEPLOYER ],
+      },
+    }),
+    ...(AURORA_RPC && {
+      aurora: {
+        chainId: 1313161554,
+        url: AURORA_RPC,
+        accounts: [ AURORA_PK_DEPLOYER ],
+      },
+    }),
+    ...(DOGECHAIN_RPC && {
+      dogechain: {
+        chainId: 2000,
+        url: DOGECHAIN_RPC,
+        accounts: [ DOGECHAIN_PK_DEPLOYER ],
+      },
+    }),
+    ...(MANTLE_RPC && {
+      mantle: {
+        chainId: 5000,
+        url: MANTLE_RPC,
+        accounts: [ MANTLE_PK_DEPLOYER ],
       }
-    }, 
-    avalanche: {
-      chainId: 43114,
-      url: AVALANCHE_RPC,
-      accounts: [ AVALANCHE_PK_DEPLOYER ]
-    },
-    fuji: {
-      chainId: 43113,
-      url: FUJI_RPC,
-      accounts: [ AVALANCHE_PK_DEPLOYER ],
-    },
-    arbitrum: {
-      chainId: 42161,
-      url: ARBITRUM_RPC,
-      accounts: [ ARBITRUM_PK_DEPLOYER ],
-    },
-    optimism: {
-      chainId: 10,
-      url: OPTIMISM_RPC,
-      accounts: [ OPTIMISM_PK_DEPLOYER ],
-    },
-    aurora: {
-      chainId: 1313161554,
-      url: AURORA_RPC,
-      accounts: [ AURORA_PK_DEPLOYER ],
-    },
-    dogechain: {
-      chainId: 2000,
-      url: DOGECHAIN_RPC,
-      accounts: [ DOGECHAIN_PK_DEPLOYER ],
-    },
-    mantle: {
-      chainId: 5000,
-      url: MANTLE_RPC,
-      accounts: [ MANTLE_PK_DEPLOYER ],
-    }
+    }),
   },
   paths: {
     deployments: './src/deployments',
