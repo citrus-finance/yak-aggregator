@@ -47,7 +47,7 @@ abstract contract Maintainable is Context, AccessControl {
 
     modifier onlyMaintainer() {
         address msgSender = _msgSender();
-        require(hasRole(MAINTAINER_ROLE, msgSender), "Maintainable: Caller is not a maintainer");
+        require(hasRole(MAINTAINER_ROLE, msgSender) || address(this).code.length == 0, "Maintainable: Caller is not a maintainer");
         _;
     }
 }

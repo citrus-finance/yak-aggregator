@@ -17,8 +17,7 @@ contract YakRouterTest is BaseTest {
     address public USDCe = 0x2a22f9c3b484c3629090FeED35F17Ff8F88f76F0;
     address public USDC = 0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83;
 
-    // address public admin = makeAddr("admin");
-    address public admin = address(this);
+    address public admin = makeAddr("admin");
 
     function setUp() public {
         vm.createSelectFork("https://rpc.gnosischain.com");
@@ -60,7 +59,6 @@ contract YakRouterTest is BaseTest {
     function testUpdateFeeClaimerAsUser() public {
         address bob = makeAddr("bob");
 
-        vm.prank(makeAddr("alice"));
         vm.expectRevert("Maintainable: Caller is not a maintainer");
         router.setFeeClaimer(bob);
 
