@@ -8,8 +8,6 @@ import "../interface/IGmxRewardRouter.sol";
 import "../interface/IERC20.sol";
 import "../lib/SafeERC20.sol";
 
-import "hardhat/console.sol";
-
 contract GlpWrapper is YakWrapper {
     using SafeERC20 for IERC20;
 
